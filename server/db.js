@@ -229,6 +229,7 @@ const updateInstanceInDatabase = (modelType, instance) => {
   }
   const instanceIndex = model.data.findIndex((element) => {
     return element.id === instance.id;
+    
   });
   if (instanceIndex > -1 && model.isValid(instance)) {
     model.data[instanceIndex] = instance;
