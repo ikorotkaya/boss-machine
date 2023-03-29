@@ -12,10 +12,19 @@ const {
 } = require("./db");
 
 minionsRouter.param('minionId', (req, res, next, id) => {
-  // console.log("--> req.body: ", req.body)
   const minion = getFromDatabaseById('minions', id);
   if (minion) {
     req.minion = minion;
+    next();
+  } else {
+    res.status(404).send();
+  }
+});
+
+minionsRouter.param('workId', (req, res, next, id) => {
+  const work = getFromDatabaseById('work', id);
+  if (work) {
+    req.work = work;
     next();
   } else {
     res.status(404).send();
@@ -36,7 +45,6 @@ minionsRouter.get('/:minionId', (req, res, next) => {
 })
 
 minionsRouter.put('/:minionId', (req, res, next) => {
-  // console.log("Request body: ", req.body)
   const updateMinion = updateInstanceInDatabase('minions', req.body)
   res.send(updateMinion)
 })
@@ -44,6 +52,41 @@ minionsRouter.put('/:minionId', (req, res, next) => {
 minionsRouter.delete('/:minionId', (req, res, next) => {
   const deletedMinion = deleteFromDatabasebyId('minions', req.params.minionId);
   if (deletedMinion) {
+    res.status(204).send();
+  } else {
+    res.status(500).send();
+  }
+})
+
+// ---> Bonus
+
+minionsRouter.get('/:minionId/work', (req, res, next) => {
+  const work = getAllFromDatabase('work').filter(singleWork => {
+    return singleWork.minionId === req.minion.id
+  })
+  res.send(work)
+})
+
+minionsRouter.post('/:minionId/work', (req, res, next) => {
+  const newWork = req.body;
+  newWork.minionId = req.params.minionId
+  const createdWork = addToDatabase('work', newWork);
+  res.status(201).send(createdWork);
+})
+
+minionsRouter.put('/:minionId/work/:workId', (req, res, next) => {
+  if (req.work.minionId !== req.minion.id) {
+    res.status(400).send();
+    return;
+  }
+
+  const updatedWork = updateInstanceInDatabase('work', req.body)
+  res.send(updatedWork);
+})
+
+minionsRouter.delete('/:minionId/work/:workId', (req, res, next) => {
+  const deletedWork = deleteFromDatabasebyId('work', req.params.workId);
+  if (deletedWork) {
     res.status(204).send();
   } else {
     res.status(500).send();
